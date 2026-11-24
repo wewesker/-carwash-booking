@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Жылтыр — запись на мойку</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: прямой, бытовой, без рекламы — как табличка на въезде в бокс
+   IDEA: табло боксов мойки — время слева, боксы колонками, ваш слот закреплён
+   PICTURE: сама сетка записи (боксы × время) в первом экране
+   COLOUR and TYPE: кобальт (вода, форма мойщиков), белая пена, жёлтая разметка; Unbounded + Manrope
+   LAYOUT: шапка с адресом → запись на всю ширину → прайс → правила → контакты */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0b1438);--ink:light-dark(#0e1a4d,#eef2ff);--soft:light-dark(#5a6590,#a9b4dc);
+--cob:light-dark(#2340d8,#3d5cff);--cob-ink:#ffffff;--deep:light-dark(#152a9e,#08102e);
+--foam:light-dark(#eef2ff,#131f52);--line:light-dark(#d6ddf7,#26336e);--yel:#ffd23f;--yel-ink:#1a1500;
+--busy:light-dark(#e3e7f5,#1b2759);--ok:light-dark(#0f8a4a,#4fd38d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Unbounded,Manrope,sans-serif;line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.4vw,48px);font-weight:800}
+h2{font-size:clamp(24px,3vw,34px);font-weight:700}
+h3{font-size:17px;font-weight:700}
+a{color:inherit}
+.wrap{max-width:1240px;margin:0 auto}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
+button,input,select{font:inherit;font-size:16px}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.nowrap{white-space:nowrap}
+
+/* шапка */
+.top{background:var(--deep);color:#fff;padding:14px max(5vw,16px)}
+.top .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+.logo{font-family:Unbounded;font-weight:800;font-size:22px;letter-spacing:-.5px;display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo i{width:30px;height:30px;border-radius:50% 50% 50% 6px;background:var(--yel);display:inline-block;transform:rotate(-45deg)}
+.top nav{display:flex;flex-wrap:wrap;gap:6px 20px;font-weight:600}
+.top nav a{text-decoration:none;opacity:.85;padding:8px 0}.top nav a:hover{opacity:1}
+.tel{font-weight:800;text-decoration:none}
+
+/* герой + запись */
+.hero{background:var(--cob);color:var(--cob-ink);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:auto -10% -1px -10%;height:60px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.hero .wrap{position:relative;z-index:1}
+.lead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 40px;align-items:end;margin-bottom:28px}
+.lead p{margin:12px 0 0;font-size:17px;max-width:60ch;opacity:.92}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.facts span{background:rgba(255,255,255,.14);border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+.tabs{display:inline-flex;background:rgba(0,0,0,.22);border-radius:12px;padding:4px;margin-bottom:14px}
+.tabs button{background:none;border:0;color:#fff;padding:10px 16px;border-radius:9px;font-weight:700;min-height:44px}
+.tabs button[aria-selected=true]{background:#fff;color:var(--deep)}
+
+.book{background:var(--bg);color:var(--ink);border-radius:22px;box-shadow:0 30px 60px -30px rgba(5,15,70,.6);display:grid;grid-template-columns:340px minmax(0,1fr);overflow:hidden}
+.side{padding:22px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:18px}
+.field>label,.field>.lbl{display:block;font-weight:700;font-size:14px;margin-bottom:8px}
+.svc{display:grid;gap:6px}
+.svc button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;text-align:left;background:var(--foam);border:2px solid transparent;border-radius:12px;padding:10px 12px;color:var(--ink);min-height:44px}
+.svc button small{color:var(--soft);font-size:13px;grid-column:1}
+.svc button b{grid-row:1/3;grid-column:2;align-self:center;white-space:nowrap}
+.svc button[aria-pressed=true]{border-color:var(--cob);background:light-dark(#e3e9ff,#1c2a6b)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.seg button{background:var(--foam);border:2px solid transparent;border-radius:10px;padding:8px 4px;color:var(--ink);font-weight:600;font-size:14px;min-height:44px}
+.seg button[aria-pressed=true]{border-color:var(--cob);background:light-dark(#e3e9ff,#1c2a6b)}
+.days{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}
+.days button{flex:none;scroll-snap-align:start;width:58px;background:var(--foam);border:2px solid transparent;border-radius:12px;padding:6px 0;color:var(--ink);line-height:1.2}
+.days button b{display:block;font-size:19px;font-family:Unbounded}
+.days button small{font-size:13px;color:var(--soft)}
+.days button[aria-pressed=true]{background:var(--cob);color:#fff}.days button[aria-pressed=true] small{color:#dfe5ff}
+
+.board{padding:18px 22px 22px;display:flex;flex-direction:column;min-height:520px}
+.bhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:12px}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--soft);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.grid{overflow-y:auto;max-height:430px;border:1px solid var(--line);border-radius:14px}
+.grid table{width:100%;border-collapse:separate;border-spacing:4px}
+.grid th{position:sticky;top:0;background:var(--bg);font-family:Unbounded;font-size:13px;font-weight:700;padding:8px 2px;z-index:1}
+.grid td.t{font-weight:800;font-size:14px;text-align:right;padding-right:8px;width:58px;white-space:nowrap;color:var(--soft)}
+.cell{width:100%;height:38px;border-radius:8px;border:0;background:var(--foam);color:var(--ink);font-size:13px;font-weight:700}
+.cell:hover:not(:disabled){background:light-dark(#d5ddff,#25358a)}
+.cell.busy{background:repeating-linear-gradient(135deg,var(--busy) 0 6px,transparent 6px 11px);color:var(--soft);cursor:not-allowed}
+.cell.past{background:transparent;color:transparent;cursor:not-allowed}
+.cell.no{background:transparent;cursor:not-allowed}
+.cell.sel{background:var(--yel);color:var(--yel-ink)}
+.cell.span{background:light-dark(#fff1b8,#5b4c12);color:light-dark(#5b4c12,#ffe68a)}
+.sum{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--foam);border-radius:14px;padding:14px 16px}
+.sum p{margin:0;font-weight:600}
+.sum p span{color:var(--soft);font-weight:500}
+.go{background:var(--cob);color:#fff;border:0;border-radius:12px;padding:12px 22px;font-weight:800;min-height:48px}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.empty{color:var(--soft);font-weight:500}
+
+/* форма и подтверждение */
+.sheet{position:fixed;inset:0;background:rgba(5,12,45,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.sheet.on{display:flex}
+.card{background:var(--bg);color:var(--ink);border-radius:20px;padding:24px;width:min(460px,100%);max-height:92vh;overflow:auto}
+.card h3{font-size:22px;margin-bottom:6px}
+.card .row{margin-top:14px}
+.card input{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink)}
+.card input:focus{border-color:var(--cob);outline:none}
+.err{color:#d6283c;font-size:14px;margin:6px 0 0;min-height:1em}
+.acts{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.ghost{background:none;border:2px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 18px;font-weight:700;min-height:48px}
+.ticket{border:2px dashed var(--cob);border-radius:16px;padding:16px;margin-top:14px}
+.ticket b.num{font-family:Unbounded;font-size:30px;display:block;color:var(--cob)}
+.ticket dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:10px 0 0}
+.ticket dt{color:var(--soft)}.ticket dd{margin:0;font-weight:700}
+.wa{display:inline-flex;align-items:center;gap:8px;background:#1faa59;color:#fff;text-decoration:none;border-radius:12px;padding:12px 18px;font-weight:800;min-height:48px}
+
+/* админ */
+.admin{background:var(--bg);color:var(--ink);border-radius:22px;padding:22px;box-shadow:0 30px 60px -30px rgba(5,15,70,.6)}
+.lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.lane{background:var(--foam);border-radius:14px;padding:12px;min-height:200px}
+.lane h3{font-size:15px;margin-bottom:10px}
+.job{background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px;border-left:4px solid var(--cob);font-size:14px}
+.job b{display:block}
+.job .st{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.job .st button{border:0;border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;background:var(--foam);color:var(--ink);min-height:36px}
+.job.in{border-color:var(--yel)}.job.done{border-color:var(--ok);opacity:.7}
+.job.mine{outline:2px solid var(--yel)}
+.astats{display:flex;flex-wrap:wrap;gap:10px 28px;font-weight:600;color:var(--soft)}
+.astats b{color:var(--ink);font-family:Unbounded;font-size:20px;margin-right:6px}
+.admin .days{margin-top:12px}
+.pin{max-width:420px}.pin h3{font-size:22px;margin-bottom:6px}
+.pinrow{display:flex;gap:8px;margin-top:12px}.pinrow input{flex:1;border:2px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink)}
+.linkbtn{background:none;border:0;padding:0;color:inherit;text-decoration:underline;font-size:inherit}
+.job.cancelled{opacity:.45;border-color:var(--soft);text-decoration:line-through}
+.job a{font-weight:700}
+.status{margin-top:10px;font-size:14px;color:var(--soft);min-height:1.2em}
+.status.bad{color:#d6283c}
+footer a{color:#fff}
+
+/* прайс */
+.price table{width:100%;border-collapse:collapse;margin-top:20px}
+.price th,.price td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:right}
+.price th:first-child,.price td:first-child{text-align:left}
+.price thead th{font-size:14px;color:var(--soft);font-weight:700}
+.price td{font-weight:700;white-space:nowrap}
+.price td:first-child{white-space:normal;font-weight:600}
+.price td:first-child small{display:block;color:var(--soft);font-weight:500}
+.note{color:var(--soft);font-size:14px;margin-top:12px}
+
+.rules{background:var(--foam)}
+.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:22px}
+.rgrid h3{margin-bottom:6px}.rgrid p{margin:0;color:var(--soft)}
+.rgrid div{border-top:4px solid var(--yel);padding-top:14px}
+
+.contact .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.contact dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 20px;margin:18px 0 0}
+.contact dt{color:var(--soft)}.contact dd{margin:0;font-weight:700}
+.map{border-radius:18px;background:var(--cob);aspect-ratio:16/10;position:relative;overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+footer{background:var(--deep);color:#c9d2ff;font-size:14px;padding:22px max(5vw,16px)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+
+@media(max-width:900px){.book{grid-template-columns:minmax(0,1fr)}.side{border-right:0;border-bottom:1px solid var(--line)}.lanes{grid-template-columns:repeat(2,minmax(0,1fr))}.rgrid{grid-template-columns:minmax(0,1fr)}.contact .wrap{grid-template-columns:minmax(0,1fr)}.lead{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.top nav{display:none}.board,.side{padding:16px}.grid table{border-spacing:3px}.cell{height:36px;font-size:12px}.sum{grid-template-columns:minmax(0,1fr)}.go{width:100%}.price th,.price td{padding:12px 6px;font-size:14px}.lanes{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.cell.sel{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.85)}to{transform:scale(1)}}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="#zapis"><i aria-hidden="true"></i><span id="brand">Жылтыр</span></a>
+  <nav><a href="#zapis">Запись</a><a href="#price">Цены</a><a href="#rules">Как работает запись</a><a href="#contact">Адрес</a></nav>
+  <a class="tel" id="telTop" href="#contact"></a>
+</div></header>
+
+<section class="hero band" id="zapis"><div class="wrap">
+  <div class="lead">
+    <div>
+      <h1>Записались на 14:00 — заезжаете в 14:00</h1>
+      <p>Выберите услугу и свободный бокс. Время закрепляется за вашей машиной: живая очередь его не займёт.</p>
+    </div>
+    <div class="facts"><span id="hoursFact"></span><span>4 бокса</span><span>Kaspi QR, карта, наличные</span></div>
+  </div>
+  <div class="book" id="clientView">
+    <div class="side">
+      <div class="field"><span class="lbl">Услуга</span><div class="svc" id="svc"></div></div>
+      <div class="field"><span class="lbl">Кузов</span><div class="seg" id="cls"></div></div>
+      <div class="field"><span class="lbl">День</span><div class="days" id="days"></div></div>
+    </div>
+    <div class="board">
+      <div class="bhead">
+        <h3 id="boardTitle">Свободное время</h3>
+        <div class="legend"><span><i style="background:var(--foam)"></i>свободно</span><span><i style="background:repeating-linear-gradient(135deg,var(--busy) 0 4px,transparent 4px 7px)"></i>занято</span><span><i style="background:var(--yel)"></i>ваше время</span></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="sum">
+        <p id="sumText" class="empty">Нажмите на свободную ячейку: строка — время, колонка — бокс.</p>
+        <button class="go" id="go" disabled>Записаться</button>
+      </div>
+      <p class="status" id="netStatus" role="status"></p>
+    </div>
+  </div>
+
+  <div class="admin" id="adminView" hidden>
+    <form id="pinForm" class="pin">
+      <h3>Вход для администратора</h3>
+      <p class="empty">Введите код доступа, чтобы увидеть записи клиентов.</p>
+      <div class="pinrow"><input id="pin" type="password" autocomplete="current-password" aria-label="Код доступа"><button class="go" type="submit">Войти</button></div>
+      <p class="err" id="pinErr"></p>
+      <p><a href="#zapis" id="backLink">Вернуться к записи</a></p>
+    </form>
+    <div id="adminBody" hidden>
+      <div class="bhead"><h3 id="adminTitle">Записи по боксам</h3><div class="astats" id="astats"></div></div>
+      <div class="days" id="adays"></div>
+      <div class="lanes" id="lanes"></div>
+      <p class="note" id="adminNote">Список обновляется сам каждые 20 секунд. <a href="#zapis">Открыть страницу записи</a> · <button type="button" class="linkbtn" id="logout">Выйти</button></p>
+    </div>
+  </div>
+</div></section>
+
+<section class="band price" id="price"><div class="wrap">
+  <h2>Цены</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Услуга</th><th>Седан</th><th>Кроссовер</th><th>Джип, минивэн</th></tr></thead>
+    <tbody id="priceBody"></tbody>
+  </table></div>
+  <p class="note">Цены указаны за мойку, оплата на месте после работы.</p>
+</div></section>
+
+<section class="band rules" id="rules"><div class="wrap">
+  <h2>Как работает запись</h2>
+  <div class="rgrid">
+    <div><h3>Бокс закреплён за вами</h3><p>При записи вы выбираете конкретный бокс. Пока ваше время не прошло, туда не заезжает машина из очереди.</p></div>
+    <div><h3>Ждём 10 минут</h3><p>Опаздываете — напишите в WhatsApp. Если вас нет больше 10 минут и вы не предупредили, бокс отдаём следующей машине.</p></div>
+    <div><h3>Без записи тоже можно</h3><p>Живая очередь обслуживается в свободных боксах. Свободные окна на сегодня видны в таблице выше.</p></div>
+  </div>
+</div></section>
+
+<section class="band contact" id="contact"><div class="wrap">
+  <div>
+    <h2>Как нас найти</h2>
+    <dl>
+      <dt>Адрес</dt><dd id="addr"></dd>
+      <dt>Часы</dt><dd id="hours"></dd>
+      <dt>Телефон</dt><dd id="tel"></dd>
+      <dt>Оплата</dt><dd>Kaspi QR, карта, наличные</dd>
+    </dl>
+    <p style="margin-top:20px"><a class="wa" id="waContact" href="#">Написать в WhatsApp</a></p>
+  </div>
+  <div class="map" aria-hidden="true">
+    <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice">
+      <path d="M-20 70 C 80 40, 160 110, 260 80 S 400 40, 430 60" stroke="#7f95ff" stroke-width="26" fill="none" opacity=".55"/>
+      <g stroke="#ffffff" stroke-opacity=".35" stroke-width="10" fill="none"><path d="M0 170 H400"/><path d="M120 0 V250"/><path d="M290 0 V250"/><path d="M0 220 L400 130"/></g>
+      <g transform="translate(205 160)"><circle r="26" fill="#ffd23f" opacity=".35"/><path d="M0 -26 C 14 -26 22 -16 22 -6 C 22 10 0 26 0 26 C 0 26 -22 10 -22 -6 C -22 -16 -14 -26 0 -26Z" fill="#ffd23f"/><circle cy="-6" r="7" fill="#152a9e"/></g>
+    </svg>
+  </div>
+</div></section>
+
+<footer><div class="wrap"><span id="footBrand"></span><a href="#admin">Вход для администратора</a></div></footer>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"><div class="card" id="sheetCard"></div></div>
+
+<script>
+{
+/* === Настройки заведения: поменяйте под реальную мойку === */
+const CFG={
+  name:'Жылтыр',
+  address:'Семей, ул. Примерная, 1',
+  phone:'+7 700 000 00 00',
+  whatsapp:'77000000000',
+  open:9, close:21, step:30, boxes:4,
+  api:'https://ekytwizovatbehnteqcg.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXR3aXpvdmF0YmVobnRlcWNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MzkxMzQsImV4cCI6MjExMTExNTEzNH0.I9tgO0HGsNqtaJmih-X5bHTKhzLLT5c49anmSACgMfw'
+};
+const SVC=[
+  {id:'ex',name:'Кузов',note:'Пена, ручная мойка, сушка',min:30,p:[3000,3500,4500]},
+  {id:'cx',name:'Комплекс',note:'Кузов, салон, коврики, стёкла',min:60,p:[6500,7500,9000]},
+  {id:'wx',name:'Комплекс и воск',note:'Комплекс плюс горячий воск',min:90,p:[9000,10500,12500]},
+  {id:'en',name:'Мойка двигателя',note:'С защитой электрики',min:30,p:[5000,5500,6500]},
+  {id:'dry',name:'Химчистка салона',note:'Сиденья, потолок, ковролин',min:240,p:[35000,42000,50000]}
+];
+const CLS=['Седан','Кроссовер','Джип, минивэн'];
+const DOW=['вс','пн','вт','ср','чт','пт','сб'];
+const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const ERR={taken:'Это время только что заняли. Выберите другую ячейку.',past:'Это время уже прошло. Выберите другое.',bad_phone:'Укажите телефон: нужно 10–11 цифр.',bad_name:'Укажите имя.',too_many:'На этот номер уже есть 3 записи в этот день. Позвоните нам, если нужно больше.',bad_day:'На этот день запись пока не открыта.',bad_pin:'Код не подошёл. Проверьте и введите ещё раз.'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Number(n).toLocaleString('ru-RU').replace(/ /g,' ')+' ₸';
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+/* время Семея (UTC+5), независимо от часового пояса телефона */
+const localNow=()=>{const n=new Date();return new Date(n.getTime()+n.getTimezoneOffset()*60000+5*3600000)};
+const today=localNow();today.setHours(0,0,0,0);
+const dayList=[...Array(14)].map((_,i)=>{const d=new Date(today);d.setDate(d.getDate()+i);return d});
+const slots=[];for(let m=CFG.open*60;m<CFG.close*60;m+=CFG.step)slots.push(m);
+
+async function rpc(fn,body){
+  const r=await fetch(CFG.api+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key,Authorization:'Bearer '+CFG.key},body:JSON.stringify(body)});
+  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch(e){}
+  if(!r.ok){const code=(j&&j.message)||'network';throw new Error(code)}
+  return j;
+}
+const net=(msg,bad)=>{const s=$('netStatus');s.textContent=msg||'';s.className='status'+(bad?' bad':'')};
+
+const st={svc:'cx',cls:0,day:0,box:null,start:null,busy:[],loaded:false};
+const cur=()=>SVC.find(s=>s.id===st.svc);
+const price=()=>cur().p[st.cls];
+
+async function loadBusy(quiet){
+  const day=st.day;
+  if(!quiet){st.loaded=false;renderGrid()}
+  try{
+    const rows=await rpc('get_busy',{p_day:iso(dayList[day])});
+    if(day!==st.day)return;
+    st.busy=rows||[];st.loaded=true;net('');keepOrDrop();renderGrid();
+  }catch(e){st.loaded=true;net('Не удалось загрузить расписание. Проверьте интернет или позвоните нам.',true);renderGrid()}
+}
+function free(box,start,len){
+  const end=start+len;if(end>CFG.close*60)return false;
+  return !st.busy.some(x=>x.box===box&&x.start_min<end&&x.end_min>start);
+}
+function keepOrDrop(){if(st.start!==null&&!free(st.box,st.start,cur().min)){st.box=st.start=null}}
+
+function renderSide(){
+  $('svc').innerHTML=SVC.map(s=>`<button type="button" data-s="${s.id}" aria-pressed="${s.id===st.svc}"><span>${esc(s.name)}</span><small>${esc(s.note)} · ${s.min>=60?s.min/60+' ч':s.min+' мин'}</small><b>${money(s.p[st.cls])}</b></button>`).join('');
+  $('cls').innerHTML=CLS.map((c,i)=>`<button type="button" data-c="${i}" aria-pressed="${i===st.cls}">${esc(c)}</button>`).join('');
+  $('days').innerHTML=dayList.map((d,i)=>`<button type="button" data-d="${i}" aria-pressed="${i===st.day}"><small>${i===0?'сегодня':DOW[d.getDay()]}</small><b>${d.getDate()}</b></button>`).join('');
+}
+function renderGrid(){
+  const d=dayList[st.day],len=cur().min;
+  const n=localNow(),nowM=st.day===0?n.getHours()*60+n.getMinutes():-1;
+  $('boardTitle').textContent=(st.day===0?'Сегодня, ':'')+d.getDate()+' '+MON[d.getMonth()]+' · '+cur().name.toLowerCase();
+  if(!st.loaded){$('grid').innerHTML='<p class="empty" style="padding:20px">Загружаем свободное время…</p>';return}
+  let h='<table><thead><tr><th></th>'+[...Array(CFG.boxes)].map((_,i)=>`<th>Бокс ${i+1}</th>`).join('')+'</tr></thead><tbody>';
+  let any=false;
+  for(const m of slots){
+    h+=`<tr><td class="t">${hm(m)}</td>`;
+    for(let b=1;b<=CFG.boxes;b++){
+      const taken=st.busy.some(x=>x.box===b&&x.start_min<=m&&x.end_min>m);
+      const sel=st.box===b&&st.start!==null&&m>=st.start&&m<st.start+len;
+      let cls='cell',lab='',dis='';
+      if(m<nowM){cls+=' past';dis='disabled'}
+      else if(taken){cls+=' busy';dis='disabled'}
+      else if(sel){cls+=m===st.start?' sel':' span';lab=m===st.start?hm(m):''}
+      else if(!free(b,m,len)){cls+=' no';dis='disabled'}
+      else any=true;
+      h+=`<td><button type="button" class="${cls}" data-b="${b}" data-m="${m}" ${dis} aria-label="Бокс ${b}, ${hm(m)}${taken?', занято':''}">${lab}</button></td>`;
+    }
+    h+='</tr>';
+  }
+  $('grid').innerHTML=h+'</tbody></table>'+(any||st.start!==null?'':'<p class="empty" style="padding:12px 16px">На этот день свободного времени не осталось. Выберите другой день.</p>');
+  const s=$('sumText');
+  if(st.start===null){s.className='empty';s.textContent='Нажмите на свободную ячейку: строка — время, колонка — бокс.';$('go').disabled=true}
+  else{s.className='';s.innerHTML=`${esc(cur().name)}, ${esc(CLS[st.cls].toLowerCase())} · <span class="nowrap">бокс ${st.box}, ${hm(st.start)}–${hm(st.start+len)}</span><br><span>${money(price())}, оплата на месте</span>`;$('go').disabled=false}
+}
+
+$('svc').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;st.svc=b.dataset.s;keepOrDrop();renderSide();renderGrid()});
+$('cls').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;st.cls=+b.dataset.c;renderSide();renderGrid()});
+$('days').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;st.day=+b.dataset.d;st.box=st.start=null;renderSide();loadBusy()});
+$('grid').addEventListener('click',e=>{const b=e.target.closest('.cell');if(!b||b.disabled)return;st.box=+b.dataset.b;st.start=+b.dataset.m;renderGrid()});
+
+/* форма записи */
+const sheet=$('sheet'),card=$('sheetCard');
+function close(){sheet.classList.remove('on');$('go').focus()}
+sheet.addEventListener('click',e=>{if(e.target===sheet)close()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.classList.contains('on'))close()});
+$('go').addEventListener('click',()=>{
+  const d=dayList[st.day],svc=cur(),box=st.box,start=st.start,cls=CLS[st.cls],pr=price();
+  card.innerHTML=`<h3 id="sheetTitle">Ваши данные</h3>
+  <p class="empty" style="margin:0">${esc(svc.name)} · ${d.getDate()} ${MON[d.getMonth()]}, <span class="nowrap">${hm(start)}</span> · бокс ${box} · ${money(pr)}</p>
+  <form id="f" novalidate>
+    <div class="row field"><label for="fn">Имя</label><input id="fn" autocomplete="given-name" maxlength="60" required></div>
+    <div class="row field"><label for="fp">Телефон</label><input id="fp" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 7__ ___ __ __" maxlength="18" required></div>
+    <div class="row field"><label for="fc">Машина и номер</label><input id="fc" maxlength="60" placeholder="Toyota Camry, 123 ABC 16"></div>
+    <p class="err" id="ferr"></p>
+    <div class="acts"><button class="go" type="submit" id="fs">Подтвердить запись</button><button class="ghost" type="button" id="fx">Назад</button></div>
+  </form>`;
+  sheet.classList.add('on');$('fn').focus();
+  $('fx').onclick=close;
+  $('f').onsubmit=async ev=>{ev.preventDefault();
+    const n=$('fn').value.trim(),p=$('fp').value.trim(),c=$('fc').value.trim(),digits=p.replace(/\D/g,'');
+    if(!n){$('ferr').textContent=ERR.bad_name;$('fn').focus();return}
+    if(digits.length<10||digits.length>12){$('ferr').textContent=ERR.bad_phone;$('fp').focus();return}
+    $('fs').disabled=true;$('fs').textContent='Записываем…';$('ferr').textContent='';
+    try{
+      const num=await rpc('create_booking',{p_day:iso(d),p_box:box,p_start:start,p_len:svc.min,p_service:svc.name,p_class:cls,p_price:pr,p_name:n,p_phone:p,p_car:c});
+      const msg=`Здравствуйте! Запись №${num}: ${svc.name} (${cls.toLowerCase()}), ${d.getDate()} ${MON[d.getMonth()]} в ${hm(start)}, бокс ${box}. ${n}, ${p}${c?', '+c:''}.`;
+      card.innerHTML=`<h3 id="sheetTitle">Вы записаны</h3>
+      <div class="ticket"><b class="num">№ ${esc(num)}</b>
+      <dl><dt>Когда</dt><dd>${d.getDate()} ${MON[d.getMonth()]}, ${hm(start)}–${hm(start+svc.min)}</dd><dt>Бокс</dt><dd>${box}</dd><dt>Услуга</dt><dd>${esc(svc.name)}, ${esc(cls.toLowerCase())}</dd><dt>К оплате</dt><dd>${money(pr)}</dd><dt>Машина</dt><dd>${esc(c||'—')}</dd></dl></div>
+      <p class="empty">Назовите номер записи администратору. Если опаздываете больше чем на 10 минут, предупредите в WhatsApp.</p>
+      <div class="acts"><a class="wa" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Написать в WhatsApp</a><button class="ghost" type="button" id="fok">Готово</button></div>`;
+      $('fok').onclick=close;
+      st.box=st.start=null;loadBusy(true);
+    }catch(e){
+      const code=Object.keys(ERR).find(k=>e.message.includes(k));
+      $('ferr').textContent=code?ERR[code]:'Не получилось записать. Проверьте интернет и попробуйте ещё раз.';
+      $('fs').disabled=false;$('fs').textContent='Подтвердить запись';
+      if(code==='taken'||code==='past'){loadBusy(true)}
+    }
+  };
+});
+
+/* администратор: страница #admin */
+const adm={pin:'',day:0,timer:null};
+try{adm.pin=sessionStorage.getItem('cw-pin')||''}catch(e){}
+const STATUS={new:'Ждём',arrived:'Приехал',done:'Готово',cancelled:'Отменена'};
+async function loadAdmin(){
+  const d=dayList[adm.day];
+  try{
+    const rows=await rpc('admin_list',{p_pin:adm.pin,p_day:iso(d)});
+    $('pinForm').hidden=true;$('adminBody').hidden=false;
+    renderAdmin(rows||[],d);
+  }catch(e){
+    if(e.message.includes('bad_pin')){adm.pin='';try{sessionStorage.removeItem('cw-pin')}catch(_){}
+      $('adminBody').hidden=true;$('pinForm').hidden=false;$('pinErr').textContent=ERR.bad_pin}
+    else $('adminNote').firstChild.textContent='Нет связи с сервером, пробуем снова. ';
+  }
+}
+function renderAdmin(list,d){
+  const n=localNow(),nowM=adm.day===0?n.getHours()*60+n.getMinutes():-1;
+  const live=list.filter(x=>x.status!=='cancelled');
+  $('adminTitle').textContent=(adm.day===0?'Сегодня, ':'')+d.getDate()+' '+MON[d.getMonth()];
+  $('astats').innerHTML=`<span><b>${live.length}</b>записей</span><span><b>${live.filter(x=>x.start_min>nowM&&x.status==='new').length}</b>ждём</span><span><b class="nowrap">${money(live.reduce((s,x)=>s+x.price,0))}</b>по записи</span>`;
+  $('adays').innerHTML=dayList.slice(0,7).map((x,i)=>`<button type="button" data-ad="${i}" aria-pressed="${i===adm.day}"><small>${i===0?'сегодня':DOW[x.getDay()]}</small><b>${x.getDate()}</b></button>`).join('');
+  $('lanes').innerHTML=[...Array(CFG.boxes)].map((_,i)=>{
+    const jobs=list.filter(x=>x.box===i+1);
+    return `<div class="lane"><h3>Бокс ${i+1}</h3>${jobs.length?jobs.map(j=>`<div class="job ${j.status==='arrived'?'in':j.status}">
+      <span class="nowrap">${hm(j.start_min)}–${hm(j.end_min)} · №${esc(j.num)}</span><b>${esc(j.name)}</b>
+      ${esc(j.car||'—')} · ${esc(j.service)}, ${esc(j.car_class.toLowerCase())}<br>
+      <a href="tel:+${esc(j.phone)}">+${esc(j.phone)}</a> · ${money(j.price)}
+      <div class="st">${['arrived','done','cancelled'].map(k=>`<button type="button" data-j="${esc(j.id)}" data-k="${k}" data-cur="${esc(j.status)}">${j.status===k?'✓ ':''}${STATUS[k]}</button>`).join('')}</div></div>`).join(''):'<p class="empty">Записей нет. Бокс свободен для живой очереди.</p>'}</div>`;
+  }).join('');
+  $('adminNote').firstChild.textContent='Список обновляется сам каждые 20 секунд. ';
+}
+$('lanes').addEventListener('click',async e=>{const b=e.target.closest('[data-j]');if(!b)return;
+  const next=b.dataset.cur===b.dataset.k?'new':b.dataset.k;b.disabled=true;
+  try{await rpc('admin_set_status',{p_pin:adm.pin,p_id:b.dataset.j,p_status:next})}catch(_){}
+  loadAdmin()});
+$('adays').addEventListener('click',e=>{const b=e.target.closest('[data-ad]');if(!b)return;adm.day=+b.dataset.ad;loadAdmin()});
+$('pinForm').addEventListener('submit',e=>{e.preventDefault();adm.pin=$('pin').value.trim();$('pinErr').textContent='';
+  try{sessionStorage.setItem('cw-pin',adm.pin)}catch(_){}loadAdmin()});
+$('logout').onclick=()=>{adm.pin='';try{sessionStorage.removeItem('cw-pin')}catch(_){}location.hash='zapis'};
+
+function route(){
+  const admin=location.hash==='#admin';
+  $('clientView').hidden=admin;$('adminView').hidden=!admin;
+  document.querySelector('.lead').hidden=admin;
+  clearInterval(adm.timer);
+  if(admin){
+    if(adm.pin){loadAdmin()}else{$('pinForm').hidden=false;$('adminBody').hidden=true;setTimeout(()=>$('pin').focus(),50)}
+    adm.timer=setInterval(()=>{if(adm.pin&&!$('adminBody').hidden)loadAdmin()},20000);
+    window.scrollTo(0,0);
+  }else{
+    adm.timer=setInterval(()=>loadBusy(true),30000);
+  }
+}
+window.addEventListener('hashchange',route);
+
+/* прайс и контакты */
+$('priceBody').innerHTML=SVC.map(s=>`<tr><td>${esc(s.name)}<small>${esc(s.note)}</small></td>${s.p.map(v=>`<td>${money(v)}</td>`).join('')}</tr>`).join('');
+const hours=`ежедневно ${hm(CFG.open*60)}–${hm(CFG.close*60)}`;
+$('brand').textContent=CFG.name;$('footBrand').textContent=CFG.name+', автомойка, Семей';
+$('addr').textContent=CFG.address;$('hours').textContent=hours;$('hoursFact').textContent=hours;
+$('tel').textContent=CFG.phone;$('telTop').textContent=CFG.phone;
+$('waContact').href='https://wa.me/'+CFG.whatsapp;
+renderSide();loadBusy();route();
+}
+</script>
+</body>
+</html>
