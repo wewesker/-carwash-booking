@@ -298,6 +298,7 @@ async function rpc(fn,body){
 const net=(msg,bad)=>{const s=$('netStatus');s.textContent=msg||'';s.className='status'+(bad?' bad':'')};
 
 const st={svc:'cx',cls:0,day:0,box:null,start:null,busy:[],loaded:false};
+{const n0=localNow();if(n0.getHours()*60+n0.getMinutes()>=CFG.close*60-30)st.day=1}
 const cur=()=>SVC.find(s=>s.id===st.svc);
 const price=()=>cur().p[st.cls];
 
