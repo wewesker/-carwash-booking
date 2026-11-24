@@ -20,6 +20,7 @@
 --busy:light-dark(#e3e7f5,#1b2759);--ok:light-dark(#0f8a4a,#4fd38d)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3{font-family:Unbounded,Manrope,sans-serif;line-height:1.08;text-wrap:balance;margin:0}
 h1{font-size:clamp(28px,4.4vw,48px);font-weight:800}
@@ -440,6 +441,7 @@ $('logout').onclick=()=>{adm.pin='';try{sessionStorage.removeItem('cw-pin')}catc
 
 function route(){
   const admin=location.hash==='#admin';
+  sheet.classList.remove('on');
   $('clientView').hidden=admin;$('adminView').hidden=!admin;
   document.querySelector('.lead').hidden=admin;
   clearInterval(adm.timer);
