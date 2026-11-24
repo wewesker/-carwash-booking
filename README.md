@@ -7,3 +7,5 @@
 - Экран администратора: `…/#admin`, вход по коду доступа.
 
 Хостинг: GitHub Pages. База: Supabase.
+
+Сайт: https://wewesker.github.io/-carwash-booking/
